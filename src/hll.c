@@ -77,7 +77,7 @@ new_hll_entry(PARROT_INTERP, ARGIN_NULLOK(STRING *entry_name))
 
     PMC *entry_id;
 
-    PMC * const entry = Parrot_pmc_new_constant_init_int(interp,
+    PMC * const entry = Parrot_pmc_new_init_int(interp,
             enum_class_FixedPMCArray, e_HLL_MAX);
 
     if (entry_name && !STRING_IS_EMPTY(entry_name)) {
@@ -86,7 +86,7 @@ new_hll_entry(PARROT_INTERP, ARGIN_NULLOK(STRING *entry_name))
     else
         VTABLE_push_pmc(interp, hll_info, entry);
 
-    entry_id = Parrot_pmc_new_constant_init_int(interp, enum_class_Integer, id);
+    entry_id = Parrot_pmc_new_init_int(interp, enum_class_Integer, id);
     VTABLE_set_pmc_keyed_int(interp, entry, e_HLL_id, entry_id);
 
     return entry;
@@ -111,7 +111,7 @@ Parrot_hll_init_HLL(PARROT_INTERP)
     interp->HLL_info      =
         Parrot_pmc_new(interp, enum_class_OrderedHash);
     interp->HLL_namespace =
-        Parrot_pmc_new_constant(interp, enum_class_ResizablePMCArray);
+        Parrot_pmc_new(interp, enum_class_ResizablePMCArray);
 
     Parrot_hll_register_HLL(interp, CONST_STRING(interp, "parrot"));
 }
@@ -153,7 +153,7 @@ Parrot_hll_register_HLL(PARROT_INTERP, ARGIN(STRING *hll_name))
     entry    = new_hll_entry(interp, hll_name);
 
     /* register HLL name */
-    name     = Parrot_pmc_new_constant(interp, enum_class_String);
+    name     = Parrot_pmc_new(interp, enum_class_String);
 
     VTABLE_set_string_native(interp, name, hll_name);
     VTABLE_set_pmc_keyed_int(interp, entry, e_HLL_name, name);
@@ -173,7 +173,7 @@ Parrot_hll_register_HLL(PARROT_INTERP, ARGIN(STRING *hll_name))
     VTABLE_set_pmc_keyed_int(interp, interp->HLL_namespace, idx, ns_hash);
 
     /* create HLL typemap hash */
-    type_hash = Parrot_pmc_new_constant(interp, enum_class_Hash);
+    type_hash = Parrot_pmc_new(interp, enum_class_Hash);
     VTABLE_set_pointer(interp, type_hash, Parrot_hash_new_intval_hash(interp));
     VTABLE_set_pmc_keyed_int(interp, entry, e_HLL_typemap, type_hash);
 

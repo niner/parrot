@@ -154,7 +154,7 @@ set_cstring_prop(PARROT_INTERP, ARGMOD(PMC *lib_pmc), ARGIN(const char *what),
 {
     ASSERT_ARGS(set_cstring_prop)
     STRING * const key  = Parrot_str_new_constant(interp, what);
-    PMC    * const prop = Parrot_pmc_new_constant(interp, enum_class_String);
+    PMC    * const prop = Parrot_pmc_new(interp, enum_class_String);
 
     VTABLE_set_string_native(interp, prop, name);
     VTABLE_setprop(interp, lib_pmc, key, prop);
@@ -407,8 +407,10 @@ Parrot_dyn_init_lib(PARROT_INTERP,
         lib_pmc = (*load_func)(interp);
 
     /* seems to be a native/NCI lib */
-    if (!load_func || !lib_pmc)
-        lib_pmc = Parrot_pmc_new_constant(interp, enum_class_ParrotLibrary);
+    if (!load_func || !lib_pmc) {
+        lib_pmc = Parrot_pmc_new(interp, enum_class_ParrotLibrary);
+        Parrot_pmc_gc_register(interp, lib_pmc);
+    }
 
     /*  Call init, if it exists */
     if (init_func)
@@ -582,8 +584,8 @@ Parrot_dyn_clone_lib_into(ARGMOD(Interp *d), ARGMOD(Interp *s), ARGIN(PMC *lib_p
          * Anyways, if we hope to share bytecode at runtime, we need to have
          * them have identical opcodes anyways.
          */
-         PMC * const new_lib_pmc = Parrot_pmc_new_constant(d,
-                                        enum_class_ParrotLibrary);
+        PMC * const new_lib_pmc = Parrot_pmc_new(d, enum_class_ParrotLibrary);
+        Parrot_pmc_gc_register(d, new_lib_pmc);
 
         PMC_data(new_lib_pmc) = handle;
         VTABLE_setprop(d, new_lib_pmc, CONST_STRING(s, "_filename"), Parrot_pmc_box_string(d, wo_ext));
