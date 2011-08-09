@@ -19,33 +19,58 @@ Sub PMCs with the same short name, but different long names.
 */
 
 #include "pmc/pmc_callcontext.h"
+#include "pmc/pmc_sub.h"
+
+#define ADD_SUB(i, p, s) do { \
+        PMC * __sig; \
+        GETATTR_Sub_multi_signature((i), (s), __sig); \
+        (i)->vtables[enum_class_Hash]->set_pmc_keyed((i), (p), (s)); \
+    } while (0)
+
+#define CHECK_IS_SUB(i, s) do { \
+        STRING * const __i_str = CONST_STRING(INTERP, "invokable"); \
+        if (!VTABLE_does((i), (s), __i_str)) \
+            Parrot_ex_throw_from_c_args(INTERP, NULL, EXCEPTION_INVALID_OPERATION, \
+                    "attempt to set non-invokable PMC"); \
+    } while (0)
 
 /* HEADERIZER HFILE: none */
 /* HEADERIZER BEGIN: static */
 /* HEADERIZER END: static */
 
-pmclass MultiSub extends ResizablePMCArray auto_attrs provides array provides invokable {
+pmclass MultiSub extends Hash auto_attrs provides array provides invokable {
+
+    VTABLE void init() {
+        VTABLE_init_int(INTERP, SELF, Hash_key_PMC);
+    }
+
+    VTABLE void init_int(INTVAL type) {
+        Parrot_ex_throw_from_c_args(INTERP, NULL, EXCEPTION_INVALID_OPERATION,
+            "Cannot init_int a MultiSub PMC");
+    }
 
     VTABLE STRING * get_string() {
-        PMC * const sub0    = VTABLE_get_pmc_keyed_int(INTERP, SELF, 0);
-        STRING * const name = VTABLE_get_string(INTERP, sub0);
-        return name;
+        Hash * const hash = PARROT_HASH(SELF)->hash;
+        parrot_hash_iterate_linear(hash, {
+            PMC * const value = _bucket->value;
+            return VTABLE_get_string(INTERP, value);
+        });
+        return STRINGNULL;
     }
 
     VTABLE void push_pmc(PMC *value) {
-        if (!VTABLE_does(INTERP, value, CONST_STRING(INTERP, "invokable")))
-            Parrot_ex_throw_from_c_args(INTERP, NULL,
-                EXCEPTION_INVALID_OPERATION, "attempt to push non Sub PMC");
-
-        SUPER(value);
+        CHECK_IS_SUB(INTERP, value);
+        ADD_SUB(INTERP, SELF, value);
     }
 
-    VTABLE void set_pmc_keyed_int(INTVAL key, PMC *value) {
-        STRING * const _sub = CONST_STRING(INTERP, "Sub");
-        if (!VTABLE_isa(INTERP, value, _sub))
-            Parrot_ex_throw_from_c_args(INTERP, NULL, EXCEPTION_INVALID_OPERATION,
-                    "attempt to set non Sub PMC");
-        SUPER(key, value);
+    VTABLE void set_pmc_keyed_int(INTVAL dummy, PMC *value) {
+        CHECK_IS_SUB(INTERP, value);
+        ADD_SUB(INTERP, SELF, sub);
+    }
+
+    VTABLE void set_pmc_keyed(PMC * key, PMC *sub) {
+        CHECK_IS_SUB(INTERP, value);
+        SUPER(key, sub);
     }
 
     VTABLE opcode_t *invoke(void *next) {
