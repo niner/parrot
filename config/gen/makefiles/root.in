@@ -354,21 +354,34 @@ FLUID_FILES_2 = \
 #
 ###############################################################################
 
-# parrot.h and all the includes it causes to be included
-PARROT_H_HEADERS = \
-	$(INC_DIR)/parrot.h \
-	$(INC_DIR)/6model/knowhow_bootstrapper.h \
+ESSENTIAL_SIX_MODEL_HEADERS = \
 	$(INC_DIR)/6model/repr_registry.h \
 	$(INC_DIR)/6model/serialization_context.h \
 	$(INC_DIR)/6model/sixmodelobject.h \
-	$(INC_DIR)/6model/storage_spec.h \
+	$(INC_DIR)/6model/storage_spec.h
+
+SIX_MODEL_REPR_HEADERS = \
 	$(INC_DIR)/6model/repr/HashAttrStore.h \
 	$(INC_DIR)/6model/repr/KnowHOWREPR.h \
 	$(INC_DIR)/6model/repr/P6int.h \
 	$(INC_DIR)/6model/repr/P6num.h \
 	$(INC_DIR)/6model/repr/P6opaque.h \
 	$(INC_DIR)/6model/repr/P6str.h \
-	$(INC_DIR)/6model/repr/Uninstantiable.h \
+	$(INC_DIR)/6model/repr/Uninstantiable.h
+
+SIX_MODEL_HEADERS = \
+	$(ESSENTIAL_SIX_MODEL_HEADERS) \
+	$(INC_DIR)/6model/knowhow_bootstrapper.h \
+	$(SIX_MODEL_REPR_HEADERS)
+
+EXTEND_HEADERS = \
+	$(INC_DIR)/extend_vtable.h \
+	$(INC_DIR)/extend.h \
+
+# parrot.h and all the includes it causes to be included
+PARROT_H_HEADERS = \
+	$(INC_DIR)/parrot.h \
+	$(ESSENTIAL_SIX_MODEL_HEADERS) \
 	$(INC_DIR)/config.h \
 	$(INC_DIR)/settings.h \
 	$(INC_DIR)/enums.h \
@@ -1003,8 +1016,7 @@ src/scheduler$(O) : \
 	include/pmc/pmc_scheduler.h \
 	include/pmc/pmc_task.h \
 	include/pmc/pmc_timer.h \
-	$(INC_DIR)/extend.h \
-	$(INC_DIR)/extend_vtable.h \
+	$(EXTEND_HEADERS) \
 	$(INC_DIR)/scheduler_private.h \
 	$(INC_DIR)/runcore_api.h
 
@@ -1354,27 +1366,29 @@ examples/pasm/hello$(EXE): examples/pasm/hello.pbc $(PBC_TO_EXE)
 #
 ###############################################################################
 
-src/6model/knowhow_bootstrapper$(O) : $(PARROT_H_HEADERS) src/6model/knowhow_bootstrapper.c
+src/6model/knowhow_bootstrapper$(O) : $(PARROT_H_HEADERS) $(EXTEND_HEADERS) include/parrot/6model/knowhow_bootstrapper.h include/parrot/6model/repr/KnowHOWREPR.h src/6model/knowhow_bootstrapper.c
 
-src/6model/repr_registry$(O) : $(PARROT_H_HEADERS) src/6model/repr_registry.c
+src/6model/multi_dispatch$(O) : $(PARROT_H_HEADERS) $(EXTEND_HEADERS) include/parrot/6model/multi_dispatch.h include/pmc/pmc_sub.h src/6model/multi_dispatch.c
 
-src/6model/serialization_context$(O) : $(PARROT_H_HEADERS) src/6model/serialization_context.c
+src/6model/repr_registry$(O) : $(PARROT_H_HEADERS) $(SIX_MODEL_REPR_HEADERS) $(EXTEND_HEADERS) src/6model/repr_registry.c
 
-src/6model/sixmodelobject$(O) : $(PARROT_H_HEADERS) src/6model/sixmodelobject.c
+src/6model/serialization_context$(O) : $(PARROT_H_HEADERS) $(EXTEND_HEADERS) src/6model/serialization_context.c
 
-src/6model/reprs/HashAttrStore$(O) : $(PARROT_H_HEADERS) src/6model/reprs/HashAttrStore.c
+src/6model/sixmodelobject$(O) : $(PARROT_H_HEADERS) $(EXTEND_HEADERS) include/parrot/6model/knowhow_bootstrapper.h src/6model/sixmodelobject.c
 
-src/6model/reprs/KnowHOWREPR$(O) : $(PARROT_H_HEADERS) src/6model/reprs/KnowHOWREPR.c
+src/6model/reprs/HashAttrStore$(O) : $(PARROT_H_HEADERS) $(EXTEND_HEADERS) include/parrot/6model/repr/HashAttrStore.h src/6model/reprs/HashAttrStore.c
 
-src/6model/reprs/P6int$(O) : $(PARROT_H_HEADERS) src/6model/reprs/P6int.c
+src/6model/reprs/KnowHOWREPR$(O) : $(PARROT_H_HEADERS) $(EXTEND_HEADERS) include/parrot/6model/repr/KnowHOWREPR.h src/6model/reprs/KnowHOWREPR.c
 
-src/6model/reprs/P6num$(O) : $(PARROT_H_HEADERS) src/6model/reprs/P6num.c
+src/6model/reprs/P6int$(O) : $(PARROT_H_HEADERS) $(EXTEND_HEADERS) include/parrot/6model/repr/P6int.h src/6model/reprs/P6int.c
 
-src/6model/reprs/P6opaque$(O) : $(PARROT_H_HEADERS) src/6model/reprs/P6opaque.c
+src/6model/reprs/P6num$(O) : $(PARROT_H_HEADERS) $(EXTEND_HEADERS) include/parrot/6model/repr/P6num.h src/6model/reprs/P6num.c
 
-src/6model/reprs/P6str$(O) : $(PARROT_H_HEADERS) src/6model/reprs/P6str.c
+src/6model/reprs/P6opaque$(O) : $(PARROT_H_HEADERS) $(EXTEND_HEADERS) include/parrot/6model/repr/P6opaque.h src/6model/reprs/P6opaque.c
 
-src/6model/reprs/Uninstantiable$(O) : $(PARROT_H_HEADERS) src/6model/reprs/Uninstantiable.c
+src/6model/reprs/P6str$(O) : $(PARROT_H_HEADERS) $(EXTEND_HEADERS) include/parrot/6model/repr/P6str.h src/6model/reprs/P6str.c
+
+src/6model/reprs/Uninstantiable$(O) : $(PARROT_H_HEADERS) $(EXTEND_HEADERS) include/parrot/6model/repr/Uninstantiable.h src/6model/reprs/Uninstantiable.c
 
 src/datatypes$(O) : $(PARROT_H_HEADERS) src/datatypes.c
 
@@ -1536,8 +1550,7 @@ src/exceptions$(O) : $(PARROT_H_HEADERS) \
 
 src/thread$(O) : \
 	$(PARROT_H_HEADERS) \
-	$(INC_DIR)/extend.h \
-	$(INC_DIR)/extend_vtable.h \
+	$(EXTEND_HEADERS) \
 	src/thread.c \
 	include/pmc/pmc_sub.h \
 	include/pmc/pmc_parrotinterpreter.h \
@@ -1563,8 +1576,7 @@ src/runcore/profiling$(O) : src/runcore/profiling.str src/runcore/profiling.c \
 	$(INC_DIR)/oplib/core_ops.h $(INC_DIR)/runcore_api.h \
 	$(INC_DIR)/runcore_profiling.h $(INC_DIR)/embed.h \
 	$(PARROT_H_HEADERS) \
-	$(INC_DIR)/extend.h \
-	$(INC_DIR)/extend_vtable.h
+	$(EXTEND_HEADERS)
 
 
 src/call/args$(O) : \
@@ -1589,9 +1601,9 @@ src/call/context$(O) : $(PARROT_H_HEADERS) \
 
 src/interp/inter_cb$(O) : $(PARROT_H_HEADERS) \
 	include/pmc/pmc_parrotinterpreter.h \
-	    $(INC_DIR)/extend.h \
-	    $(INC_DIR)/extend_vtable.h \
-	src/interp/inter_cb.str src/interp/inter_cb.c
+	$(EXTEND_HEADERS) \
+	src/interp/inter_cb.str \
+	src/interp/inter_cb.c
 
 src/interp/inter_misc$(O) : $(PARROT_H_HEADERS) \
 	src/interp/inter_misc.c \
@@ -1621,8 +1633,7 @@ src/io/api$(O) : \
 	include/pmc/pmc_filehandle.h \
 	include/pmc/pmc_stringhandle.h \
 	include/pmc/pmc_socket.h \
-	$(INC_DIR)/extend.h \
-	$(INC_DIR)/extend_vtable.h
+	$(EXTEND_HEADERS)
 
 src/io/buffer$(O) : $(PARROT_H_HEADERS) src/io/io_private.h src/io/buffer.c \
 	include/pmc/pmc_handle.h
