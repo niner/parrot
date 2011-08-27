@@ -267,6 +267,10 @@ typedef struct PackFile_ByteCode PackFile_ByteCode;
 #include "parrot/hll.h"
 #include "parrot/pbcversion.h"
 
+#include "parrot/6model/sixmodelobject.h"
+#include "parrot/6model/repr_registry.h"
+#include "parrot/6model/serialization_context.h"
+
 #endif /* PARROT_PARROT_H_GUARD */
 
 /*

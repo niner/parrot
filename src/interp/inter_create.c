@@ -345,7 +345,18 @@ initialize_interpreter(PARROT_INTERP, ARGIN(Parrot_GC_Init_Args *args))
         Parrot_x_on_exit(interp, Parrot_really_destroy, NULL);
 #endif
 
+    int_initialize_6model(interp);
     return interp;
+}
+
+static void
+int_initialize_6model(PARROT_INTERP)
+{
+    PMC * KnowHOW, KnowHOWAttribute;
+    SixModelObject_initialize(interp, &KnowHOW, &KnowHOWAttribute);
+    VTABLE_set_pmc_keyed_int(interp, interp->iglobals, IGLOBALS_KNOWHOW, KnowHOW);
+    VTABLE_set_pmc_keyed_int(interp, interp->iglobals, IGLOBALS_KNOWHOWATTRIBUTE,
+            KnowHOWAttribute);
 }
 
 
