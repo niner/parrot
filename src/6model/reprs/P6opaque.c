@@ -315,7 +315,6 @@ accessor_call(PARROT_INTERP, PMC *obj, STRING *name)
 PMC *
 index_mapping_and_flat_list(PARROT_INTERP, PMC *WHAT, P6opaqueREPRData *repr_data)
 {
-    ASSERT_ARGS(index_mapping_and_flat_list)
     PMC    *flat_list      = pmc_new(interp, enum_class_ResizablePMCArray);
     PMC    *class_list     = pmc_new(interp, enum_class_ResizablePMCArray);
     PMC    *attr_map_list  = pmc_new(interp, enum_class_ResizablePMCArray);
