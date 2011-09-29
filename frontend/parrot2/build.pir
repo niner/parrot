@@ -1,10 +1,11 @@
 # Copyright (C) 2011, Parrot Foundation.
 
 .sub 'main' :main
-    .param pmc args
-    .local pmc outfh, ifh
+    .param pmc mainargs
+    .local pmc outfh, ifh, args
     .local string infile, outfile, program_name
     .local int size
+    args = mainargs[0]
     program_name = shift args
     infile = shift args
     outfile = infile . ".c"

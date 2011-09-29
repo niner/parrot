@@ -28368,8 +28368,10 @@ NQP::Compiler - NQP compiler
 .end
 
 .sub 'main' :main
-    .param pmc args_str
+    .param pmc args
+    .local pmc args_str
 
+    args_str = args[0]
     $P0 = compreg 'NQP-rx'
     $P1 = $P0.'command_line'(args_str, 'encoding'=>'utf8', 'transcode'=>'ascii iso-8859-1')
     exit 0

@@ -2696,6 +2696,7 @@ Parrot_pf_execute_bytecode_program(PARROT_INTERP, ARGMOD(PMC *pbc),
     ASSERT_ARGS(Parrot_pf_execute_bytecode_program)
     PMC * const current_pf = Parrot_pf_get_current_packfile(interp);
     PMC * main_sub;
+    Parrot_PMC mainargs;
     PackFile *pf = (PackFile*)VTABLE_get_pointer(interp, pbc);
 
     if (!pf || !pf->cur_cs)
@@ -2711,14 +2712,13 @@ Parrot_pf_execute_bytecode_program(PARROT_INTERP, ARGMOD(PMC *pbc),
     if (!main_sub)
         main_sub = set_current_sub(interp);
 
-    if (PMC_IS_NULL(progargs)) {
-        VTABLE_set_pmc_keyed_int(interp, interp->iglobals, IGLOBALS_ARGV_LIST, sysargs);
-        Parrot_pcc_invoke_sub_from_c_args(interp, main_sub, "P->", sysargs);
-    }
-    else {
-        VTABLE_set_pmc_keyed_int(interp, interp->iglobals, IGLOBALS_ARGV_LIST, progargs);
-        Parrot_pcc_invoke_sub_from_c_args(interp, main_sub, "PP->", sysargs, progargs);
-    }
+    mainargs = VTABLE_instantiate(interp, Parrot_oo_get_class(interp, Parrot_pmc_box_string(interp, Parrot_str_from_platform_cstring(interp, "FixedPMCArray"))), PMCNULL);
+    VTABLE_set_integer_native(interp, mainargs, 2);
+    VTABLE_set_pmc_keyed_int(interp, mainargs, 0, sysargs);
+    VTABLE_set_pmc_keyed_int(interp, mainargs, 1, progargs);
+
+    VTABLE_set_pmc_keyed_int(interp, interp->iglobals, IGLOBALS_ARGV_LIST, sysargs);
+    Parrot_pcc_invoke_sub_from_c_args(interp, main_sub, "P->", mainargs);
 
     if (!PMC_IS_NULL(current_pf))
         Parrot_pf_set_current_packfile(interp, current_pf);

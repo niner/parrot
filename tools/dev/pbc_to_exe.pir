@@ -22,10 +22,11 @@ Compile bytecode to executable.
 .include 'interpcores.pasm'
 
 .sub 'main' :main
-    .param pmc    argv
+    .param pmc    args
 
     load_bytecode 'config.pbc'
 
+    .local pmc    argv
     .local string infile
     .local string cfile
     .local string objfile
@@ -33,6 +34,8 @@ Compile bytecode to executable.
     .local string runcore
     .local string gccore
     .local int    install
+
+    argv = args[0]
 
     (infile, cfile, objfile, exefile, runcore, gccore, install) = 'handle_args'(argv)
     unless infile > '' goto err_infile

@@ -6,8 +6,10 @@ const int PASM_FILE = 1;
 const int PIR_FILE = 2;
 const int PBC_FILE = 3;
 
-function __PARROT_ENTRY_MAIN__args[anon](var sys_args, var prog_args)
+function __PARROT_ENTRY_MAIN__args[anon](var main_args)
 {
+    var sys_args = main_args[0];
+    var prog_args = main_args[1];
     string prog_name = prog_args[0];
     int input_file_type = __get_input_file_type(prog_name);
     string output_file = null;
@@ -56,12 +58,12 @@ function __PARROT_ENTRY_MAIN__args[anon](var sys_args, var prog_args)
     return packfile_pmc;
 }
 
-function __PARROT_ENTRY_MAIN__[anon,main](var sys_args, var prog_args)
+function __PARROT_ENTRY_MAIN__[anon,main](var main_args)
 {
     try [allowtailcall] {
-        var packfile_pmc = __PARROT_ENTRY_MAIN__args(sys_args, prog_args);
+        var packfile_pmc = __PARROT_ENTRY_MAIN__args(main_args);
         var main_sub = packfile_pmc.main_sub();
-        return main_sub(prog_args);
+        return main_sub(main_args[1]);
     } catch (e) {
         __handle_error_and_exit(e);
     }
