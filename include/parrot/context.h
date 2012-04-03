@@ -556,10 +556,12 @@ UINTVAL Parrot_pcc_warnings_test_func(PARROT_INTERP,
 
 #ifdef NDEBUG
 #  define Parrot_pcc_set_continuation(i, c, value) do { \
+        PARROT_ASSERT_INTERP((value), (i));             \
         CONTEXT_STRUCT(c)->current_cont = (value);      \
         PARROT_GC_WRITE_BARRIER((i), (c));              \
     } while (0)
 #  define Parrot_pcc_set_caller_ctx(i, c, value) do {   \
+        PARROT_ASSERT_INTERP((value), (i));             \
         CONTEXT_STRUCT(c)->caller_ctx = (value);        \
         PARROT_GC_WRITE_BARRIER((i), (c));              \
     } while (0)
@@ -569,26 +571,32 @@ UINTVAL Parrot_pcc_warnings_test_func(PARROT_INTERP,
         PARROT_GC_WRITE_BARRIER((i), (c));              \
     } while (0)
 #  define Parrot_pcc_set_object(i, c, value) do {       \
+        PARROT_ASSERT_INTERP((value), (i));             \
         CONTEXT_STRUCT(c)->current_object = (value);    \
         PARROT_GC_WRITE_BARRIER((i), (c));              \
     } while (0)
 #  define Parrot_pcc_set_lex_pad(i, c, value) do {      \
+        PARROT_ASSERT_INTERP((value), (i));             \
         CONTEXT_STRUCT(c)->lex_pad = (value);           \
         PARROT_GC_WRITE_BARRIER((i), (c));              \
     } while (0)
 #  define Parrot_pcc_set_handlers(i, c, value) do {     \
+        PARROT_ASSERT_INTERP((value), (i));             \
         CONTEXT_STRUCT(c)->handlers = (value);          \
         PARROT_GC_WRITE_BARRIER((i), (c));              \
     } while (0)
 #  define Parrot_pcc_set_outer_ctx(i, c, value) do {    \
+        PARROT_ASSERT_INTERP((value), (i));             \
         CONTEXT_STRUCT(c)->outer_ctx = (value);         \
         PARROT_GC_WRITE_BARRIER((i), (c));              \
     } while (0)
 #  define Parrot_pcc_set_signature(i, c, value) do {    \
+        PARROT_ASSERT_INTERP((value), (i));             \
         CONTEXT_STRUCT(c)->current_sig = (value);       \
         PARROT_GC_WRITE_BARRIER((i), (c));              \
     } while (0)
 #  define Parrot_pcc_set_context(i, c)   do {           \
+        PARROT_ASSERT_INTERP((c), (i));             \
         CURRENT_CONTEXT(i) = (c);                       \
     } while (0)
 #else

@@ -113,7 +113,7 @@ Parrot_thread_run(PARROT_INTERP, ARGMOD(PMC *thread_interp_pmc), ARGIN(PMC *sub)
 
     /*SETATTR_ParrotInterpreter_sub(interp, thread_interp_pmc,
                                   Parrot_thread_transfer_sub(thread_interp, interp, sub)); */
-    VTABLE_set_pmc(interp, thread_interp_pmc,
+    VTABLE_set_pmc(thread_interp, thread_interp_pmc,
                    Parrot_thread_make_local_args_copy(thread_interp, interp, arg));
     thread_interp->thread_data->state = THREAD_STATE_JOINABLE;
 
@@ -149,7 +149,7 @@ Parrot_thread_create_proxy(PARROT_INTERP, ARGIN(Parrot_Interp const thread), ARG
         PMC * const proxy = Parrot_pmc_new_init(thread, enum_class_Proxy, pmc);
         PARROT_ASSERT(interp != thread);
         PARROT_PROXY(proxy)->interp = interp;
-        PARROT_GC_WRITE_BARRIER(thread, proxy);
+        //PARROT_GC_WRITE_BARRIER(thread, proxy); /* should not be necessary */
         return proxy;
     }
 }
@@ -180,6 +180,7 @@ Parrot_thread_create_local_sub(PARROT_INTERP, ARGIN(Parrot_Interp const thread),
         Parrot_thread_maybe_create_proxy(interp, thread, sub_attrs->namespace_name) : NULL;
     local_sub_attrs->namespace_stash =
         Parrot_thread_maybe_create_proxy(interp, thread, sub_attrs->namespace_stash);
+    PARROT_ASSERT_INTERP(local_sub_attrs->namespace_stash, thread);
     local_sub_attrs->multi_signature = sub_attrs->multi_signature ?
         Parrot_thread_maybe_create_proxy(interp, thread, sub_attrs->multi_signature) : NULL;
     local_sub_attrs->lex_info        = sub_attrs->lex_info ?
@@ -272,6 +273,7 @@ void
 Parrot_thread_schedule_task(PARROT_INTERP, ARGIN(Interp *thread_interp), ARGIN(PMC *task))
 {
     ASSERT_ARGS(Parrot_thread_schedule_task)
+    char dummy = 0;
 
     /* don't run GC from the wrong thread since GC involves stack walking and we
      * don't want the foreign GC to find our objects */
@@ -279,6 +281,9 @@ Parrot_thread_schedule_task(PARROT_INTERP, ARGIN(Interp *thread_interp), ARGIN(P
 
     VTABLE_push_pmc(thread_interp, thread_interp->scheduler,
         Parrot_thread_create_local_task(interp, thread_interp, task));
+
+    /* wake the thread up if it's only waiting for new work */
+    write(thread_interp->thread_data->notifierfd[1], &dummy, 1);
 
     Parrot_unblock_GC_mark_locked(thread_interp);
 }
@@ -326,16 +331,14 @@ Parrot_thread_outer_runloop(ARGIN_NULLOK(void *arg))
             Parrot_cx_check_alarms(interp, interp->scheduler);
         }
 
-        alarm_count = VTABLE_get_integer(interp, sched->alarms);
-        if (alarm_count > 0) {
 #ifdef _WIN32
-            /* TODO: Implement on Windows */
+        /* TODO: Implement on Windows */
 #else
-            /* Nothing to do except to wait for the next alarm to expire */
-            read(interp->thread_data->notifierfd[0], &dummy, 1);
+        /* Nothing to do except to wait for the next alarm to expire
+         * or a new task to get scheduled */
+        read(interp->thread_data->notifierfd[0], &dummy, 1);
 #endif
-            Parrot_cx_check_alarms(interp, interp->scheduler);
-        }
+        Parrot_cx_check_alarms(interp, interp->scheduler);
     } while (1);
 
     return ret_val;

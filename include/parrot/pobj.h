@@ -11,6 +11,8 @@
 #ifndef PARROT_POBJ_H_GUARD
 #define PARROT_POBJ_H_GUARD
 
+#define THREAD_DEBUG 1
+
 #include "parrot/config.h"
 
 /* This is the base Parrot object structure. Every object begins with

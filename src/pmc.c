@@ -533,7 +533,7 @@ get_new_pmc_header(PARROT_INTERP, INTVAL base_type, UINTVAL flags)
 
         /* LOCK */
         if (!pmc) {
-            pmc = Parrot_gc_new_pmc_header(interp, PObj_constant_FLAG);
+            pmc = Parrot_gc_new_pmc_header(interp, PObj_constant_FLAG | PObj_is_PMC_shared_FLAG);
             PARROT_ASSERT(pmc);
 
             pmc->vtable    = vtable;

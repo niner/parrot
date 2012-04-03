@@ -1,0 +1,29 @@
+function main() {
+    var task_func = task_code;
+    var a = "a";
+    var b = "b";
+    var a_task = new 'Task';
+    a_task.code = task_func;
+    a_task.data = a;
+    var b_task = new 'Task';
+    b_task.code = task_func;
+    b_task.data = b;
+    ${ schedule a_task };
+    ${ schedule b_task };
+    while (1) {
+        sleep(0.2);
+	print("\n");
+    }
+    exit(0);
+}
+
+function task_code(var name) {
+    var foo;
+    while (1) {
+	print(name);
+	sleep(0.001);
+	foo = 1;
+	/* for (int i = 0; i < 100000; i++)
+		foo = i;*/
+    }
+}

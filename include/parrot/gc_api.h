@@ -31,7 +31,7 @@
 
 #define ALIGNED_STRING_SIZE(len) (((len) + sizeof (void*) + WORD_ALIGN_1) & WORD_ALIGN_MASK)
 
-#define PARROT_GC_WRITE_BARRIER(i, p) do { if (PObj_GC_need_write_barrier_TEST((p))) Parrot_gc_write_barrier((i), (p)); } while(0)
+#define PARROT_GC_WRITE_BARRIER(i, p) do { PARROT_ASSERT_INTERP((p), (i)); if (PObj_GC_need_write_barrier_TEST((p))) Parrot_gc_write_barrier((i), (p)); } while(0)
 
 typedef struct _Parrot_GC_Init_Args {
     void *stacktop;

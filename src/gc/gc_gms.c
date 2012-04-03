@@ -1094,6 +1094,7 @@ gc_gms_sweep_pools(PARROT_INTERP, ARGMOD(MarkSweep_GC *self))
             PMC              * const pmc  = &(item->pmc);
 
             PARROT_ASSERT(PObj_constant_TEST(pmc) || (int)POBJ2GEN(pmc) == i);
+            PARROT_ASSERT_INTERP(pmc, interp);
 
             /* Paint live objects white */
             if (PObj_live_TEST(pmc) || PObj_constant_TEST(pmc)) {
@@ -1499,6 +1500,8 @@ gc_gms_free_pmc_header(PARROT_INTERP, ARGFREE(PMC *pmc))
     if (pmc) {
         const size_t gen = POBJ2GEN(pmc);
 
+        PARROT_ASSERT_INTERP(pmc, interp);
+
         /* We should never free objects from dirty list directly! */
         PARROT_ASSERT(!PObj_GC_on_dirty_list_TEST(pmc));
 
@@ -1552,6 +1555,8 @@ gc_gms_is_pmc_ptr(PARROT_INTERP, ARGIN_NULLOK(void *ptr))
 
     if (!Parrot_gc_pool_is_owned(interp, self->pmc_allocator, item))
         return 0;
+
+    PARROT_ASSERT_INTERP((PMC*)ptr, interp);
 
     /* black or white objects marked already. */
     if (PObj_is_live_or_free_TESTALL(obj))
@@ -2043,15 +2048,21 @@ static void
 gc_gms_write_barrier(PARROT_INTERP, ARGMOD(PMC *pmc))
 {
     ASSERT_ARGS(gc_gms_write_barrier)
+
+    if (interp->thread_data)
+        LOCK(interp->thread_data->interp_lock);
+    {
     MarkSweep_GC     * const self = (MarkSweep_GC *)interp->gc_sys->gc_private;
     const size_t             gen  = POBJ2GEN(pmc);
     pmc_alloc_struct * const item = PMC2PAC(pmc);
 
+    PARROT_ASSERT_INTERP(pmc, interp);
+
     if (pmc->flags & PObj_GC_on_dirty_list_FLAG)
-        return;
+        goto DONE;
 
     if (!gen)
-        return;
+        goto DONE;
 
     Parrot_pa_remove(interp, self->objects[gen], item->ptr);
     item->ptr = Parrot_pa_insert(interp, self->dirty_list, item);
@@ -2060,6 +2071,11 @@ gc_gms_write_barrier(PARROT_INTERP, ARGMOD(PMC *pmc))
 
     /* We don't need it anymore */
     gc_gms_unseal_object(interp, pmc);
+    }
+DONE:
+
+    if (interp->thread_data)
+        UNLOCK(interp->thread_data->interp_lock);
 }
 
 /*
@@ -2221,13 +2237,14 @@ static void
 gc_gms_check_sanity(PARROT_INTERP)
 {
     ASSERT_ARGS(gc_gms_check_sanity)
-#ifdef DETAIL_MEMORY_DEBUG
+//#ifdef DETAIL_MEMORY_DEBUG
     MarkSweep_GC * const self = (MarkSweep_GC *)interp->gc_sys->gc_private;
     size_t            i;
 
     for (i = 0; i < MAX_GENERATIONS; i++) {
         POINTER_ARRAY_ITER(self->objects[i],
             PMC *pmc = &(((pmc_alloc_struct*)ptr)->pmc);
+            PARROT_ASSERT_INTERP(pmc, interp);
             PARROT_ASSERT((POBJ2GEN(pmc) == i)
                 || !"Object from wrong generation");
 
@@ -2243,14 +2260,16 @@ gc_gms_check_sanity(PARROT_INTERP)
 
     POINTER_ARRAY_ITER(self->dirty_list,
         PMC *pmc = &(((pmc_alloc_struct*)ptr)->pmc);
+        PARROT_ASSERT_INTERP(pmc, interp);
         PARROT_ASSERT(PObj_GC_on_dirty_list_TEST(pmc)
             || !"Object in dirty_list without dirty_flag"););
 
     POINTER_ARRAY_ITER(self->work_list,
         PMC *pmc = &(((pmc_alloc_struct*)ptr)->pmc);
+        PARROT_ASSERT_INTERP(pmc, interp);
         PARROT_ASSERT(!PObj_GC_on_dirty_list_TEST(pmc)
             || !"Dirty object in work_list"););
-#endif
+//#endif
 }
 
 /*
@@ -2379,6 +2398,7 @@ gc_gms_validate_objects(PARROT_INTERP)
     for (i = 0; i < MAX_GENERATIONS; i++) {
         POINTER_ARRAY_ITER(self->objects[i],
             PMC * const pmc = &((pmc_alloc_struct *)ptr)->pmc;
+            PARROT_ASSERT_INTERP(pmc, interp);
             PObj_live_CLEAR(pmc););
     }
 #else

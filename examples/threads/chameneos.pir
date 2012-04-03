@@ -65,7 +65,8 @@ init_chameneos:
     if i < 4 goto init_chameneos
 
     say "going to sleep"
-    sleep 10
+    wait chameneo
+    #sleep 120
     say "woke up just in time for exit"
     exit 0
 .end

@@ -168,9 +168,6 @@ Parrot_gc_trace_root(PARROT_INTERP,
 {
     ASSERT_ARGS(Parrot_gc_trace_root)
 
-    /* note: adding locals here did cause increased GC runs */
-    Parrot_sub_mark_context_start();
-
     if (trace == GC_TRACE_SYSTEM_ONLY) {
         trace_system_areas(interp, mem_pools);
         return 0;
@@ -259,8 +256,10 @@ mark_interp(PARROT_INTERP)
     if (!PMC_IS_NULL(interp->final_exception))
         Parrot_gc_mark_PMC_alive(interp, interp->final_exception);
 
-    if (interp->parent_interpreter)
+    if (interp->parent_interpreter) {
+        abort(); // there shouldn't be any parent_interpreter!
         mark_interp(interp->parent_interpreter);
+    }
 
     /* code should be read only and is currently not cloned into other threads
      * so only mark it in the main thread */

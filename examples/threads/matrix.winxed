@@ -1,0 +1,70 @@
+function main() {
+    var multi_row_code = multi_row;
+    var matrix = new 'FixedPMCArray'(3000);
+    var vector = new 'FixedIntegerArray'(3000);
+    var results = new 'FixedIntegerArray'(3000);
+    ${set_global 'results', results};
+
+    for (int i = 0; i < 3000; i++) {
+	matrix[i] = new 'FixedIntegerArray'(3000);
+	for (var j = 0; j < 3000; j++)
+	    matrix[i, j] = 1;
+	
+	vector[i] = 1;
+	results[i] = 0;
+    }
+
+    var task;
+    for (int i = 0; i < 3000; i++) {
+        task = new 'Task';
+        task.code = multi_row_code;
+        task.data = i;
+        ${ push task, matrix };
+        ${ push task, vector };
+
+        ${schedule task};
+    }
+
+    ${wait task};
+
+    for (int i = 0; i < 3000; i++)
+        if (results[i] != 3000) {
+            say("wrong result!");
+            exit(1);
+        }
+}
+
+function multi_row(var line) {
+    var result = 0;
+    var interp;
+    ${getinterp interp};
+    var task = interp.current_task();
+    var vector;
+    ${ pop vector, task };
+    var matrix;
+    ${ pop matrix, task };
+
+    for (int i = 0; i < 3000; i++)
+        result += matrix[line, i] * vector[i];
+
+    var res_task = new 'Task';
+    var set_result;
+    ${get_global set_result, 'set_result'};
+    res_task.code = set_result;
+    res_task.data = result;
+    ${ push res_task, line };
+    
+    interp.schedule_proxied(res_task, matrix);
+}
+
+function set_result(var result) {
+    var interp;
+    ${getinterp interp};
+    var task = interp.current_task();
+    var line;
+    ${ pop line, task };
+    var results;
+    ${get_global results, 'results'};
+
+    results[line] = result;
+}

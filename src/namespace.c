@@ -658,6 +658,7 @@ Parrot_ns_find_global_from_op(PARROT_INTERP, ARGIN(PMC *ns),
             "Tried to get null global");
     else {
         PMC * const res = Parrot_ns_find_namespace_global(interp, ns, globalname);
+        PARROT_ASSERT_INTERP(res, interp);
         return res;
     }
 }

@@ -221,6 +221,7 @@ Parrot_pcc_set_caller_ctx_func(PARROT_INTERP, ARGIN(PMC *ctx), ARGIN(PMC *caller
     ASSERT_ARGS(Parrot_pcc_set_caller_ctx_func)
     PARROT_ASSERT(ctx->vtable->base_type == enum_class_CallContext);
     PARROT_ASSERT(caller_ctx->vtable->base_type == enum_class_CallContext);
+    PARROT_ASSERT_INTERP(caller_ctx, interp);
     PARROT_GC_WRITE_BARRIER(interp, ctx);
     CONTEXT_STRUCT(ctx)->caller_ctx = caller_ctx;
 }
@@ -323,6 +324,7 @@ Parrot_pcc_set_namespace_func(PARROT_INTERP, ARGIN(PMC *ctx), ARGIN_NULLOK(PMC *
 {
     ASSERT_ARGS(Parrot_pcc_set_namespace_func)
     PARROT_ASSERT(ctx->vtable->base_type == enum_class_CallContext);
+    PARROT_ASSERT_INTERP(_namespace, interp);
     PARROT_GC_WRITE_BARRIER(interp, ctx);
     CONTEXT_STRUCT(ctx)->current_namespace = _namespace;
 }
@@ -389,6 +391,7 @@ Parrot_pcc_set_handlers_func(PARROT_INTERP, ARGIN(PMC *ctx), ARGIN(PMC *handlers
 {
     ASSERT_ARGS(Parrot_pcc_set_handlers_func)
     PARROT_ASSERT(ctx->vtable->base_type == enum_class_CallContext);
+    PARROT_ASSERT_INTERP(handlers, interp);
     PARROT_GC_WRITE_BARRIER(interp, ctx);
     CONTEXT_STRUCT(ctx)->handlers = handlers;
 }
@@ -423,6 +426,7 @@ Parrot_pcc_set_continuation_func(PARROT_INTERP, ARGIN(PMC *ctx), ARGIN_NULLOK(PM
 {
     ASSERT_ARGS(Parrot_pcc_set_continuation_func)
     PARROT_ASSERT(ctx->vtable->base_type == enum_class_CallContext);
+    PARROT_ASSERT_INTERP(_continuation, interp);
     PARROT_GC_WRITE_BARRIER(interp, ctx);
     CONTEXT_STRUCT(ctx)->current_cont = _continuation;
 }

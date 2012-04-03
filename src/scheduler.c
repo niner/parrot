@@ -145,20 +145,20 @@ Parrot_cx_outer_runloop(PARROT_INTERP)
 
             Parrot_cx_next_task(interp, scheduler);
 
+            foreign_count = VTABLE_get_integer(interp, sched->foreign_tasks);
+            for (i = 0; i < foreign_count; i++) {
+                PMC * const task = VTABLE_get_pmc_keyed_int(interp, sched->foreign_tasks, i);
+                LOCK(PARROT_TASK(task)->waiters_lock);
+                if (PARROT_TASK(task)->killed) {
+                    VTABLE_delete_keyed_int(interp, sched->foreign_tasks, i);
+                    i--;
+                    foreign_count--;
+                }
+                UNLOCK(PARROT_TASK(task)->waiters_lock);
+            }
+
             /* add expired alarms to the task queue */
             Parrot_cx_check_alarms(interp, interp->scheduler);
-        }
-
-        foreign_count = VTABLE_get_integer(interp, sched->foreign_tasks);
-        for (i = 0; i < foreign_count; i++) {
-            PMC * const task = VTABLE_get_pmc_keyed_int(interp, sched->foreign_tasks, i);
-            LOCK(PARROT_TASK(task)->waiters_lock);
-            if (PARROT_TASK(task)->killed) {
-                VTABLE_delete_keyed_int(interp, sched->foreign_tasks, i);
-                i--;
-                foreign_count--;
-            }
-            UNLOCK(PARROT_TASK(task)->waiters_lock);
         }
 
         alarm_count = VTABLE_get_integer(interp, sched->alarms);
@@ -167,6 +167,9 @@ Parrot_cx_outer_runloop(PARROT_INTERP)
             /* TODO: Implement on Windows */
 #else
             /* Nothing to do except to wait for the next alarm to expire */
+            /* Note: there is a race condition: between the last call to Parrot_cx_check_alarms
+             * and the following pause() an alarm can expire. The pause() would then wait for a
+             * signal which was already delivered */
             if (alarm_count > 0)
                 pause();
             Parrot_thread_notify_threads(interp);
@@ -410,6 +413,8 @@ called from within the interpreter's runloop.
 
 */
 
+static int candidate_index = 1;
+
 PARROT_EXPORT
 void
 Parrot_cx_schedule_task(PARROT_INTERP, ARGIN(PMC *task_or_sub))
@@ -452,7 +457,13 @@ Parrot_cx_schedule_task(PARROT_INTERP, ARGIN(PMC *task_or_sub))
         Interp * candidate = NULL;
         int i, min_tasks = INT_MAX;
 
-        for (i = 1; i < MAX_THREADS; i++)
+        while (candidate == NULL) {
+            if (threads_array[candidate_index])
+                candidate = threads_array[candidate_index];
+            if (++candidate_index >= MAX_THREADS)
+                candidate_index = 1;
+        }
+        /*for (i = 1; i < MAX_THREADS; i++)
             if (threads_array[i]) {
                 int const tasks = VTABLE_get_integer(threads_array[i], threads_array[i]->scheduler);
                 if (tasks < min_tasks) {
@@ -460,6 +471,7 @@ Parrot_cx_schedule_task(PARROT_INTERP, ARGIN(PMC *task_or_sub))
                     candidate = threads_array[i];
                 }
             }
+            */
 
         Parrot_thread_schedule_task(interp, candidate, task);
 

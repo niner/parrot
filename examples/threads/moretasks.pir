@@ -3,15 +3,16 @@
 
 .sub main :main
     .local pmc task, sayer, starter, number, interp, tasks, results
-    .local int i, num_results, results_rem
+    .local int i, num_results, results_rem, runs
     interp = getinterp
     sayer = get_global 'sayer'
+    runs = 0
 init:
     starter = new ['Integer']
     i = 1
     starter = 0
-    say "1..100"
-    tasks = new ['ResizablePMCArray']
+#    say "1..100"
+#    tasks = new ['ResizablePMCArray']
     results = new ['ResizablePMCArray']
 start:
     number = new ['String']
@@ -21,26 +22,32 @@ start:
     push task, starter
     setattribute task, 'code', sayer
     setattribute task, 'data', number
-    print "ok "
-    say number
-    push tasks, task
+#    print "ok "
+#    say number
+#    push tasks, task
     schedule task
     inc i
-    if i > 50000 goto run
+    if i > 1000 goto run
     goto start
 run:
     starter = 1
-check_results:
-    pass
-    num_results = results
-    results_rem = num_results % 1000
-    if results_rem != 0 goto skip_say
-    say num_results
-skip_say:
-    if num_results >= 50000 goto end
-    goto check_results
-end:
+    sleep 0.00001
+#check_results:
+#    pass
+#    num_results = results
+#    results_rem = num_results % 1000
+#    if results_rem != 0 goto skip_say
+##    say num_results
+#skip_say:
+#    if num_results >= 1000 goto end
+#    goto check_results
+#end:
+    inc runs
+    if runs >= 5000 goto over
+    say runs
     goto init
+over:
+    exit 0
 .end
 
 .sub sayer
@@ -61,7 +68,7 @@ run:
     setattribute result_task, 'code', result_sub
     setattribute result_task, 'data', results
     push result_task, name
-    interp.'schedule_proxied'(result_task, results)
+#    interp.'schedule_proxied'(result_task, results)
     #say name
 .end
 
