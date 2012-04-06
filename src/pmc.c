@@ -1044,6 +1044,7 @@ Parrot_pmc_create_mro(PARROT_INTERP, INTVAL type)
             /* need a namespace Hash, anchor at parent, name it */
             PMC * const ns     = Parrot_pmc_new(interp,
                     Parrot_hll_get_ctx_HLL_type(interp, enum_class_NameSpace));
+            PObj_is_PMC_shared_SET(ns);
             vtable->_namespace = ns;
 
             /* anchor at parent, aka current_namespace, that is 'parrot' */
