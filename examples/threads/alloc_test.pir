@@ -2,9 +2,11 @@
 # Copyright (C) 2012, Parrot Foundation.
 
 .sub main :main
-    .local pmc task, sayer, interp, tasks
+    .local pmc task, sayer, interp, tasks, dummy
     interp = getinterp
     sayer = get_global 'sayer'
+    dummy = new ['ResizablePMCArray']
+    dummy = new ['Integer']
     task = new ['Task']
     setattribute task, 'code', sayer
     schedule task
