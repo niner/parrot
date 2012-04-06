@@ -363,9 +363,13 @@ Marks the namespace as live.
         Parrot_NameSpace_attributes * const nsinfo = PARROT_NAMESPACE(SELF);
 
         SUPER();
+        PARROT_ASSERT_INTERP(nsinfo->parent, INTERP);
         Parrot_gc_mark_PMC_alive(INTERP, nsinfo->parent);
+        PARROT_ASSERT_INTERP(nsinfo->_class, INTERP);
         Parrot_gc_mark_PMC_alive(INTERP, nsinfo->_class);
+        PARROT_ASSERT_INTERP(nsinfo->vtable, INTERP);
         Parrot_gc_mark_PMC_alive(INTERP, nsinfo->vtable);
+        PARROT_ASSERT_INTERP(nsinfo->methods, INTERP);
         Parrot_gc_mark_PMC_alive(INTERP, nsinfo->methods);
         Parrot_gc_mark_STRING_alive(INTERP, nsinfo->name);
     }
