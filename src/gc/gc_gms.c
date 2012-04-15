@@ -2049,6 +2049,10 @@ gc_gms_write_barrier(PARROT_INTERP, ARGMOD(PMC *pmc))
 {
     ASSERT_ARGS(gc_gms_write_barrier)
 
+    if (PObj_is_shared_TEST(pmc) && Interp_flags_TEST(interp, PARROT_IS_THREAD)) {
+        return gc_gms_write_barrier(interp->thread_data->main_interp, pmc);
+    }
+
     if (interp->thread_data)
         LOCK(interp->thread_data->interp_lock);
     {
