@@ -357,11 +357,14 @@ Parrot_thread_wait_for_notification(PARROT_INTERP)
 {
     ASSERT_ARGS(Parrot_thread_wait_for_notification)
 
+    fprintf(stderr, "Parrot_thread_wait_for_notification: interp: %p\n", interp);
+
 #ifdef PARROT_HAS_THREADS
     LOCK(interp->sleep_mutex);
     while (interp->wake_up == 0)
         COND_WAIT(interp->sleep_cond, interp->sleep_mutex);
     interp->wake_up = 0;
+    fprintf(stderr, "Parrot_thread_wait_for_notification: interp: %p woke\n", interp);
     UNLOCK(interp->sleep_mutex);
 #else
     Parrot_alarm_wait_for_next_alarm(interp);
@@ -404,6 +407,7 @@ Parrot_thread_notify_threads(ARGIN_NULLOK(PARROT_INTERP))
     ASSERT_ARGS(Parrot_thread_notify_threads)
     int i;
     Interp ** const tarray = Parrot_thread_get_threads_array(interp);
+    fprintf(stderr, "Parrot_thread_notify_threads\n");
 
     for (i = 0; i < MAX_THREADS; i++)
         if (tarray[i])

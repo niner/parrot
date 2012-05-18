@@ -83,21 +83,25 @@ Parrot_alarm_runloop(ARGIN_NULLOK(void *arg))
         int rc = 0;
         LOCK(alarm_lock);
 
+        fprintf(stderr, "Parrot_alarm_runloop: alarm_set_to: %f, now: %f\n", alarm_set_to, now);
         if (alarm_set_to >= now) {
             ts.tv_sec = (time_t)alarm_set_to;
             ts.tv_nsec = (long)((alarm_set_to - ts.tv_sec) * 1000.0f) * 1000000L;
             rc = 0;
             while (alarm == alarm_set_to && rc == 0)
                 COND_TIMED_WAIT(sleep_cond, alarm_lock, &ts, rc);
+            fprintf(stderr, "Parrot_alarm_runloop: woke up from COND_TIMED_WAIT\n");
         }
         else { /* no alarms set, just wait for new alarms */
             while (alarm == alarm_set_to)
                 COND_WAIT(sleep_cond, alarm_lock);
+            fprintf(stderr, "Parrot_alarm_runloop: woke up from COND_WAIT\n");
         }
 
         /* notify on timeout but not on setting new alarm */
         now = Parrot_floatval_time();
         notify = (rc != 0 || alarm_set_to <= now);
+        fprintf(stderr, "Parrot_alarm_runloop: notify threads: %i\n", notify);
         alarm = alarm_set_to;
 
         UNLOCK(alarm_lock);
@@ -162,12 +166,14 @@ Parrot_alarm_set(FLOATVAL when)
     FLOATVAL now;
     LOCK(alarm_lock);
     now = Parrot_floatval_time();
+    fprintf(stderr, "Parrot_alarm_set: now: %f, alarm_set_to: %f, when: %f\n", now, alarm_set_to, when);
 
     if (alarm_set_to > now && alarm_set_to < when) {
         UNLOCK(alarm_lock);
         return;
     }
 
+    fprintf(stderr, "Parrot_alarm_set: setting new alarm\n");
     alarm_set_to = when;
     COND_SIGNAL(sleep_cond);
     UNLOCK(alarm_lock);
